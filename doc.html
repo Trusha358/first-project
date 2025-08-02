@@ -1,0 +1,138 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My To-Do List</title>
+    <!-- Load Tailwind CSS from CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Import the Inter font for a clean and modern look */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Custom style for the checked state of a list item */
+        .checked {
+            text-decoration: line-through;
+            color: #9ca3af; /* A light gray color */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Main Container for the To-Do List App -->
+    <div class="w-full max-w-lg bg-white p-8 rounded-3xl shadow-2xl">
+        
+        <!-- Header Section -->
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-4xl font-bold text-gray-800">To-Do List</h1>
+            <svg class="w-10 h-10 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2m-9 0h9m-9 0V3a2 2 0 012-2h2a2 2 0 012 2v2m-4 0h4m-4 0a1 1 0 100-2 1 1 0 000 2z"></path>
+            </svg>
+        </div>
+
+        <!-- Input field and Add Button -->
+        <div class="flex space-x-3 mb-6">
+            <input 
+                id="task-input" 
+                type="text" 
+                placeholder="Add a new task..." 
+                class="flex-1 p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+            >
+            <button 
+                id="add-button" 
+                class="px-6 py-2 bg-sky-500 text-white rounded-xl font-semibold hover:bg-sky-600 transition-colors shadow-lg"
+            >
+                Add
+            </button>
+        </div>
+
+        <!-- List of Tasks -->
+        <ul id="task-list" class="space-y-3">
+            <!-- Tasks will be added here dynamically by JavaScript -->
+        </ul>
+        
+    </div>
+
+    <script>
+        // Get references to the HTML elements we need to interact with
+        const taskInput = document.getElementById('task-input');
+        const addButton = document.getElementById('add-button');
+        const taskList = document.getElementById('task-list');
+
+        // Function to save the tasks to the browser's local storage
+        function saveTasks() {
+            localStorage.setItem('tasks', taskList.innerHTML);
+        }
+
+        // Function to load tasks from local storage when the page loads
+        function loadTasks() {
+            const savedTasks = localStorage.getItem('tasks');
+            if (savedTasks) {
+                taskList.innerHTML = savedTasks;
+            }
+        }
+
+        // Function to create a new list item (task)
+        function createTask(taskText) {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <div class="flex items-center justify-between bg-gray-50 p-4 rounded-xl shadow-sm transition-all hover:shadow-md">
+                    <span class="text-lg text-gray-700 break-words flex-1 pr-4">${taskText}</span>
+                    <button class="delete-button text-red-500 hover:text-red-700 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            // Add a click event listener to the new list item to toggle the 'checked' class
+            li.addEventListener('click', function(event) {
+                // Check if the click was on the list item itself, not the delete button
+                if (event.target.tagName !== 'BUTTON' && !event.target.closest('.delete-button')) {
+                    li.classList.toggle('checked');
+                    saveTasks(); // Save the updated state to local storage
+                }
+            });
+            return li;
+        }
+
+        // Add a task when the "Add" button is clicked
+        addButton.addEventListener('click', function() {
+            const taskText = taskInput.value.trim();
+            if (taskText !== '') {
+                const newTask = createTask(taskText);
+                taskList.appendChild(newTask);
+                taskInput.value = ''; // Clear the input field
+                saveTasks(); // Save the new task
+            }
+        });
+
+        // Allow adding a task by pressing the "Enter" key
+        taskInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                addButton.click();
+            }
+        });
+
+        // Use event delegation on the task list to handle clicks on delete buttons
+        taskList.addEventListener('click', function(event) {
+            if (event.target.closest('.delete-button')) {
+                // Find the parent list item and remove it
+                const listItem = event.target.closest('li');
+                if (listItem) {
+                    listItem.remove();
+                    saveTasks(); // Save the updated list
+                }
+            }
+        });
+        
+        // Load any saved tasks when the page first loads
+        window.addEventListener('load', loadTasks);
+
+    </script>
+</body>
+</html>
